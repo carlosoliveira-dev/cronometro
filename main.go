@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-// Injetáveis em build: go build -ldflags "-X main.version=1.0.0"
+// Override at build time: go build -ldflags "-X main.version=1.0.0"
 var (
 	version   = "dev"
 	buildDate = "unknown"
@@ -66,13 +66,13 @@ func (s *server) routes() http.Handler {
 	return withSecurityHeaders(withLogging(mux))
 }
 
-// handleIndex renderiza o template em memória para que um erro de execução
-// vire um 500 completo, em vez de uma resposta parcialmente escrita.
+// handleIndex renders the template into memory so that an execution error
+// becomes a complete 500 instead of a half-written response.
 func (s *server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	if err := s.tmpl.ExecuteTemplate(&buf, "index.html", s.data); err != nil {
-		slog.Error("falha ao renderizar index.html", "erro", err)
-		http.Error(w, "erro interno ao renderizar a pagina", http.StatusInternalServerError)
+		slog.Error("failed to render index.html", "err", err)
+		http.Error(w, "internal error while rendering the page", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -111,11 +111,11 @@ func withLogging(next http.Handler) http.Handler {
 		start := time.Now()
 		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(rec, r)
-		slog.Debug("requicao atendida",
-			"metodo", r.Method,
-			"caminho", r.URL.Path,
+		slog.Debug("request served",
+			"method", r.Method,
+			"path", r.URL.Path,
 			"status", rec.status,
-			"duracao", time.Since(start).Round(time.Millisecond).String(),
+			"duration", time.Since(start).Round(time.Millisecond).String(),
 		)
 	})
 }
@@ -141,10 +141,10 @@ func humanBytes(n int64) string {
 }
 
 func main() {
-	addr := flag.String("addr", ":8080", "endereco de escuta do servidor")
-	templatesDir := flag.String("templates", "templates", "diretorio com os templates html")
-	staticDir := flag.String("static", "static", "diretorio com css, js e icones")
-	verbose := flag.Bool("v", false, "log verboso com uma linha por requisicao")
+	addr := flag.String("addr", ":8080", "server listen address")
+	templatesDir := flag.String("templates", "templates", "directory with the html templates")
+	staticDir := flag.String("static", "static", "directory with css, js and icons")
+	verbose := flag.Bool("v", false, "verbose log with one line per request")
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
@@ -154,7 +154,7 @@ func main() {
 	slog.SetDefault(logger)
 
 	data := pageData{
-		AppName:      "Cronometro",
+		AppName:      "Stopwatch",
 		Version:      version,
 		BuildDate:    buildDate,
 		DefaultTheme: "light",
@@ -163,16 +163,16 @@ func main() {
 
 	srv, err := newServer(*templatesDir, *staticDir, data)
 	if err != nil {
-		slog.Error("nao foi possivel iniciar o servidor", "erro", err)
+		slog.Error("could not start the server", "err", err)
 		os.Exit(1)
 	}
 
 	css := filepath.Join(*staticDir, "dist", "app.css")
 	if info, err := os.Stat(css); err != nil {
-		slog.Warn("css compilado ausente: rode 'npm run build:css' antes de usar a interface",
-			"caminho", css)
+		slog.Warn("compiled css missing: run 'npm run build:css' before using the interface",
+			"path", css)
 	} else {
-		slog.Info("css compilado encontrado", "caminho", css, "tamanho", humanBytes(info.Size()))
+		slog.Info("compiled css found", "path", css, "size", humanBytes(info.Size()))
 	}
 
 	httpSrv := &http.Server{
@@ -189,22 +189,22 @@ func main() {
 	defer stop()
 
 	go func() {
-		slog.Info("servindo cronometro", "addr", *addr, "versao", version)
+		slog.Info("serving stopwatch", "addr", *addr, "version", version)
 		if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("servidor encerrado com erro", "erro", err)
+			slog.Error("server stopped with error", "err", err)
 			stop()
 		}
 	}()
 
 	<-ctx.Done()
 	stop()
-	slog.Info("encerrando, aguardando requisicoes ativas")
+	slog.Info("shutting down, waiting for active requests")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := httpSrv.Shutdown(shutdownCtx); err != nil {
-		slog.Error("shutdown forcado", "erro", err)
+		slog.Error("forced shutdown", "err", err)
 		os.Exit(1)
 	}
-	slog.Info("servidor encerrado")
+	slog.Info("server stopped")
 }

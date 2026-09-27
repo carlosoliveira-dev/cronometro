@@ -1,8 +1,8 @@
 {
-  "name": "cronometro",
+  "name": "stopwatch",
   "version": "1.0.0",
   "private": true,
-  "description": "Cronometro mobile-first com precisao de milissegundos, servido por Go com html/template e Tailwind CSS",
+  "description": "Mobile-first stopwatch with millisecond precision, served by Go with html/template and Tailwind CSS",
   "type": "module",
   "scripts": {
     "build:css": "tailwindcss -i ./static/css/input.css -o ./static/dist/app.css --minify",

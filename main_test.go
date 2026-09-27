@@ -10,11 +10,11 @@ import (
 	"testing"
 )
 
-func novoServidorDeTeste(t *testing.T) *server {
+func newTestServer(t *testing.T) *server {
 	t.Helper()
 	data := pageData{
-		AppName:      "Cronometro",
-		Version:      "teste",
+		AppName:      "Stopwatch",
+		Version:      "test",
 		BuildDate:    "2026-09-26",
 		DefaultTheme: "light",
 		MaxLaps:      maxLaps,
@@ -26,97 +26,97 @@ func novoServidorDeTeste(t *testing.T) *server {
 	return srv
 }
 
-func requisitar(t *testing.T, srv *server, metodo, caminho string) *httptest.ResponseRecorder {
+func request(t *testing.T, srv *server, method, path string) *httptest.ResponseRecorder {
 	t.Helper()
 	rec := httptest.NewRecorder()
-	srv.routes().ServeHTTP(rec, httptest.NewRequest(metodo, caminho, nil))
+	srv.routes().ServeHTTP(rec, httptest.NewRequest(method, path, nil))
 	return rec
 }
 
-func TestIndexRetorna200ComModeloDoTemplate(t *testing.T) {
-	rec := requisitar(t, novoServidorDeTeste(t), http.MethodGet, "/")
+func TestIndexReturns200WithTheTemplateData(t *testing.T) {
+	rec := request(t, newTestServer(t), http.MethodGet, "/")
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, esperado %d", rec.Code, http.StatusOK)
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
 	}
 	if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "text/html") {
-		t.Errorf("Content-Type = %q, esperado text/html", ct)
+		t.Errorf("Content-Type = %q, want text/html", ct)
 	}
 	if cc := rec.Header().Get("Cache-Control"); cc != "no-cache" {
-		t.Errorf("Cache-Control = %q, esperado no-cache", cc)
+		t.Errorf("Cache-Control = %q, want no-cache", cc)
 	}
 
 	body := rec.Body.String()
-	for _, marcador := range []string{
-		`<html lang="pt-BR"`,
-		`id="cronometro"`,
-		`id="tempo-min"`,
-		`id="tempo-sec"`,
-		`id="tempo-ms"`,
-		`Cronometro`,
-		`5000`, // MaxLaps injetado no template
+	for _, marker := range []string{
+		`<html lang="en"`,
+		`id="stopwatch"`,
+		`id="time-min"`,
+		`id="time-sec"`,
+		`id="time-ms"`,
+		`Stopwatch`,
+		`5000`, // MaxLaps injected into the template
 		`/static/dist/app.css`,
 		`/static/js/app.js`,
 	} {
-		if !strings.Contains(body, marcador) {
-			t.Errorf("corpo nao contem o marcador %q", marcador)
+		if !strings.Contains(body, marker) {
+			t.Errorf("body does not contain the marker %q", marker)
 		}
 	}
 }
 
-func TestIndexIgnoraParametrosDesconhecidos(t *testing.T) {
-	rec := requisitar(t, novoServidorDeTeste(t), http.MethodGet, "/?debug=1&x=<script>")
+func TestIndexIgnoresUnknownQueryParams(t *testing.T) {
+	rec := request(t, newTestServer(t), http.MethodGet, "/?debug=1&x=<script>")
 	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, esperado %d", rec.Code, http.StatusOK)
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
 	}
 }
 
 func TestHealthz(t *testing.T) {
-	rec := requisitar(t, novoServidorDeTeste(t), http.MethodGet, "/healthz")
+	rec := request(t, newTestServer(t), http.MethodGet, "/healthz")
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, esperado %d", rec.Code, http.StatusOK)
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
 	}
-	if got := strings.TrimSpace(rec.Body.String()); got != `{"status":"ok","version":"teste"}` {
+	if got := strings.TrimSpace(rec.Body.String()); got != `{"status":"ok","version":"test"}` {
 		t.Errorf("body = %q", got)
 	}
 }
 
-func TestRotaFaviconRedirecionaParaSVG(t *testing.T) {
-	rec := requisitar(t, novoServidorDeTeste(t), http.MethodGet, "/favicon.ico")
+func TestFaviconRouteRedirectsToSVG(t *testing.T) {
+	rec := request(t, newTestServer(t), http.MethodGet, "/favicon.ico")
 
 	if rec.Code != http.StatusMovedPermanently {
-		t.Fatalf("status = %d, esperado %d", rec.Code, http.StatusMovedPermanently)
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusMovedPermanently)
 	}
 	if loc := rec.Header().Get("Location"); loc != "/static/favicon.svg" {
 		t.Errorf("Location = %q", loc)
 	}
 }
 
-func TestHeadersDeSeguranca(t *testing.T) {
-	rec := requisitar(t, novoServidorDeTeste(t), http.MethodGet, "/")
+func TestSecurityHeaders(t *testing.T) {
+	rec := request(t, newTestServer(t), http.MethodGet, "/")
 
-	esperados := map[string]string{
+	expected := map[string]string{
 		"X-Content-Type-Options": "nosniff",
 		"Referrer-Policy":        "same-origin",
 		"X-Frame-Options":        "DENY",
 	}
-	for header, esperado := range esperados {
-		if got := rec.Header().Get(header); got != esperado {
-			t.Errorf("%s = %q, esperado %q", header, got, esperado)
+	for header, want := range expected {
+		if got := rec.Header().Get(header); got != want {
+			t.Errorf("%s = %q, want %q", header, got, want)
 		}
 	}
 }
 
-func TestMetodoNaoPermitido(t *testing.T) {
-	rec := requisitar(t, novoServidorDeTeste(t), http.MethodPost, "/")
+func TestMethodNotAllowed(t *testing.T) {
+	rec := request(t, newTestServer(t), http.MethodPost, "/")
 
 	if rec.Code != http.StatusMethodNotAllowed {
-		t.Fatalf("status = %d, esperado %d", rec.Code, http.StatusMethodNotAllowed)
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusMethodNotAllowed)
 	}
 }
 
-func TestAssetEstaticoEContentTypeDeModuloES(t *testing.T) {
+func TestStaticAssetAndEsmContentType(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(dir, "js"), 0o755); err != nil {
 		t.Fatal(err)
@@ -124,20 +124,20 @@ func TestAssetEstaticoEContentTypeDeModuloES(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, "js", "app.js"), []byte("export const x = 1;\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	srv := novoServidorDeTeste(t)
+	srv := newTestServer(t)
 	srv.static = http.FileServer(http.Dir(dir))
 
 	rec := httptest.NewRecorder()
 	srv.routes().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/static/js/app.js", nil))
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, esperado %d", rec.Code, http.StatusOK)
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
 	}
 	if ct := rec.Header().Get("Content-Type"); !strings.Contains(ct, "javascript") {
-		t.Errorf("Content-Type = %q, esperado content-type de javascript para o modulo ES", ct)
+		t.Errorf("Content-Type = %q, want a javascript content type for the ES module", ct)
 	}
 	if cc := rec.Header().Get("Cache-Control"); cc != "no-cache" {
-		t.Errorf("Cache-Control = %q, esperado no-cache para permitir revalidacao", cc)
+		t.Errorf("Cache-Control = %q, want no-cache to allow revalidation", cc)
 	}
 	body, _ := io.ReadAll(rec.Body)
 	if string(body) != "export const x = 1;\n" {
@@ -145,18 +145,18 @@ func TestAssetEstaticoEContentTypeDeModuloES(t *testing.T) {
 	}
 }
 
-func TestTemplateAusenteFalhaNaInicializacao(t *testing.T) {
+func TestMissingTemplateFailsAtStartup(t *testing.T) {
 	_, err := newServer(t.TempDir(), t.TempDir(), pageData{})
 	if err == nil {
-		t.Fatal("esperava erro quando index.html nao existe")
+		t.Fatal("expected an error when index.html is missing")
 	}
 	if !strings.Contains(err.Error(), "parse template") {
-		t.Errorf("erro inesperado: %v", err)
+		t.Errorf("unexpected error: %v", err)
 	}
 }
 
 func TestHumanBytes(t *testing.T) {
-	casos := []struct {
+	cases := []struct {
 		in   int64
 		want string
 	}{
@@ -166,9 +166,9 @@ func TestHumanBytes(t *testing.T) {
 		{1536, "1.5 KB"},
 		{1024 * 1024, "1.0 MB"},
 	}
-	for _, c := range casos {
+	for _, c := range cases {
 		if got := humanBytes(c.in); got != c.want {
-			t.Errorf("humanBytes(%d) = %q, esperado %q", c.in, got, c.want)
+			t.Errorf("humanBytes(%d) = %q, want %q", c.in, got, c.want)
 		}
 	}
 }

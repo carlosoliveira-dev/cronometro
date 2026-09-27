@@ -9,14 +9,14 @@
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo,
     Consolas, "Liberation Mono", monospace;
 
-  --text-horas: clamp(1.25rem, min(7vw, 9vh), 2.5rem);
-  --text-horas--line-height: 1;
-  --text-minutos: clamp(1.1rem, min(6.5vw, 8.5vh), 2.25rem);
-  --text-minutos--line-height: 1;
+  --text-hours: clamp(1.25rem, min(7vw, 9vh), 2.5rem);
+  --text-hours--line-height: 1;
+  --text-minutes: clamp(1.1rem, min(6.5vw, 8.5vh), 2.25rem);
+  --text-minutes--line-height: 1;
   --text-display: clamp(2.75rem, min(15vw, 19vh), 5rem);
   --text-display--line-height: 1;
-  --text-milis: clamp(0.8rem, min(4.6vw, 6vh), 1.5rem);
-  --text-milis--line-height: 1;
+  --text-ms: clamp(0.8rem, min(4.6vw, 6vh), 1.5rem);
+  --text-ms--line-height: 1;
 
   --color-accent-50: oklch(97% 0.02 162);
   --color-accent-100: oklch(93% 0.05 162);
@@ -31,8 +31,8 @@
 @layer base {
   :root {
     color-scheme: light;
-    --altura-app: 100vh;
-    --altura-lista: 42vh;
+    --app-height: 100vh;
+    --lap-list-height: 42vh;
   }
 
   .dark {
@@ -41,8 +41,8 @@
 
   @supports (height: 100svh) {
     :root {
-      --altura-app: 100svh;
-      --altura-lista: 42svh;
+      --app-height: 100svh;
+      --lap-list-height: 42svh;
     }
   }
 
@@ -60,36 +60,36 @@
   }
 }
 
-@utility tempo-display {
+@utility time-display {
   contain: layout style;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
 
-@utility altura-app {
-  min-height: var(--altura-app);
+@utility app-height {
+  min-height: var(--app-height);
 }
 
-@utility altura-lista {
-  max-height: var(--altura-lista);
+@utility lap-list-height {
+  max-height: var(--lap-list-height);
 }
 
-@utility acento-segundos {
+@utility seconds-accent {
   color: var(--color-accent-600);
   text-shadow: 0 0 28px color-mix(in oklab, var(--color-accent-600) 32%, transparent);
 }
 
-.dark .acento-segundos {
+.dark .seconds-accent {
   color: var(--color-accent-400);
   text-shadow: 0 0 28px color-mix(in oklab, var(--color-accent-400) 34%, transparent);
 }
 
-@utility separador {
+@utility separator {
   color: color-mix(in oklab, currentColor 55%, transparent);
   opacity: 0.45;
 }
 
-@keyframes piscar-separador {
+@keyframes blink-separator {
   0%,
   49% {
     opacity: 0.5;
@@ -100,11 +100,11 @@
   }
 }
 
-.rodando .separador {
-  animation: piscar-separador 1s steps(1, end) infinite;
+.running .separator {
+  animation: blink-separator 1s steps(1, end) infinite;
 }
 
-@keyframes pulsar-segundos {
+@keyframes pulse-seconds {
   0% {
     transform: scale(1);
   }
@@ -116,11 +116,11 @@
   }
 }
 
-.pulso-segundos {
-  animation: pulsar-segundos 180ms cubic-bezier(0.22, 1, 0.36, 1);
+.pulse-seconds {
+  animation: pulse-seconds 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@keyframes surgir {
+@keyframes rise {
   from {
     opacity: 0;
     transform: translateY(6px);
@@ -131,48 +131,48 @@
   }
 }
 
-.surgir {
-  animation: surgir 200ms ease-out both;
+.rise {
+  animation: rise 200ms ease-out both;
 }
 
-.lista-voltas {
+.lap-list {
   scrollbar-width: thin;
   overscroll-behavior: contain;
 }
 
-[data-estado="false"] .so-on {
+[data-state="false"] .icon-on {
   display: none;
 }
 
-[data-estado="true"] .so-off {
+[data-state="true"] .icon-off {
   display: none;
 }
 
-.so-lua {
+.icon-moon {
   display: none;
 }
 
-.dark .so-sol {
+.dark .icon-sun {
   display: none;
 }
 
-.dark .so-lua {
+.dark .icon-moon {
   display: block;
 }
 
-.lista-voltas::-webkit-scrollbar {
+.lap-list::-webkit-scrollbar {
   width: 6px;
 }
 
-.lista-voltas::-webkit-scrollbar-thumb {
+.lap-list::-webkit-scrollbar-thumb {
   background: color-mix(in oklab, currentColor 25%, transparent);
   border-radius: 9999px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rodando .separador,
-  .pulso-segundos,
-  .surgir {
+  .running .separator,
+  .pulse-seconds,
+  .rise {
     animation: none;
   }
 }

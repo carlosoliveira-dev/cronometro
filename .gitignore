@@ -1,6 +1,6 @@
 node_modules/
 bin/
-cronometro.exe
-cronometro
+stopwatch.exe
+stopwatch
 .DS_Store
 *.log

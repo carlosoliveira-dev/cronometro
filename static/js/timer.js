@@ -1,212 +1,212 @@
-const HORA_MS = 3600000;
-const MINUTO_MS = 60000;
-const SEGUNDO_MS = 1000;
+const HOUR_MS = 3600000;
+const MINUTE_MS = 60000;
+const SECOND_MS = 1000;
 
-export function criarCronometro(relogio) {
-  const agora = relogio ?? (() => performance.now());
-  let rodando = false;
-  let acumulado = 0;
-  let marca = 0;
+export function createStopwatch(clock) {
+  const now = clock ?? (() => performance.now());
+  let running = false;
+  let accumulated = 0;
+  let mark = 0;
 
   return {
-    get rodando() {
-      return rodando;
+    get running() {
+      return running;
     },
 
-    get decorridoMs() {
-      return rodando ? acumulado + (agora() - marca) : acumulado;
+    get elapsedMs() {
+      return running ? accumulated + (now() - mark) : accumulated;
     },
 
-    iniciar() {
-      if (rodando) {
-        return this.decorridoMs;
+    start() {
+      if (running) {
+        return this.elapsedMs;
       }
-      marca = agora();
-      rodando = true;
-      return this.decorridoMs;
+      mark = now();
+      running = true;
+      return this.elapsedMs;
     },
 
-    pausar() {
-      if (!rodando) {
-        return acumulado;
+    pause() {
+      if (!running) {
+        return accumulated;
       }
-      acumulado += agora() - marca;
-      rodando = false;
-      return acumulado;
+      accumulated += now() - mark;
+      running = false;
+      return accumulated;
     },
 
-    alternar() {
-      return rodando ? this.pausar() : this.iniciar();
+    toggle() {
+      return running ? this.pause() : this.start();
     },
 
-    zerar() {
-      rodando = false;
-      acumulado = 0;
-      marca = 0;
+    reset() {
+      running = false;
+      accumulated = 0;
+      mark = 0;
     },
 
-    restaurar(ms) {
-      rodando = false;
-      acumulado = Math.max(0, Math.floor(Number(ms) || 0));
-      marca = 0;
+    restore(ms) {
+      running = false;
+      accumulated = Math.max(0, Math.floor(Number(ms) || 0));
+      mark = 0;
     },
   };
 }
 
-export function partesDoTempo(ms) {
+export function timeParts(ms) {
   const total = Math.max(0, Math.floor(Number(ms) || 0));
-  const horas = Math.floor(total / HORA_MS);
+  const hours = Math.floor(total / HOUR_MS);
   return {
-    horas,
-    min: Math.floor(total / MINUTO_MS) % 60,
-    s: Math.floor(total / SEGUNDO_MS) % 60,
+    hours,
+    min: Math.floor(total / MINUTE_MS) % 60,
+    s: Math.floor(total / SECOND_MS) % 60,
     ms: total % 1000,
-    temHoras: horas > 0,
+    hasHours: hours > 0,
   };
 }
 
-export function formatarTempo(ms) {
-  const p = partesDoTempo(ms);
+export function formatTime(ms) {
+  const p = timeParts(ms);
   const min = String(p.min).padStart(2, "0");
   const s = String(p.s).padStart(2, "0");
   const resto = String(p.ms).padStart(3, "0");
-  return (p.temHoras ? `${p.horas}:` : "") + `${min}:${s}.${resto}`;
+  return (p.hasHours ? `${p.hours}:` : "") + `${min}:${s}.${resto}`;
 }
 
-function digitos(valor, max) {
-  if (typeof valor !== "string" || !/^\d+$/.test(valor) || valor.length > max) {
+function digits(value, max) {
+  if (typeof value !== "string" || !/^\d+$/.test(value) || value.length > max) {
     return null;
   }
-  return Number(valor);
+  return Number(value);
 }
 
-export function parseTempo(texto) {
-  if (typeof texto !== "string") {
+export function parseTime(text) {
+  if (typeof text !== "string") {
     return null;
   }
-  const grupos = texto.trim().replace(",", ".").split(":");
-  if (grupos.length > 3) {
+  const groups = text.trim().replace(",", ".").split(":");
+  if (groups.length > 3) {
     return null;
   }
-  const ultimo = grupos.pop();
-  if (ultimo === "") {
+  const lastGroup = groups.pop();
+  if (lastGroup === "") {
     return null;
   }
-  const comPonto = ultimo.split(".");
-  if (comPonto.length > 2) {
+  const dotParts = lastGroup.split(".");
+  if (dotParts.length > 2) {
     return null;
   }
-  const segundos = digitos(comPonto[0], 2);
-  if (segundos === null) {
+  const seconds = digits(dotParts[0], 2);
+  if (seconds === null) {
     return null;
   }
-  const temMilissegundos = comPonto.length === 2;
-  const textoMs = temMilissegundos ? comPonto[1] : null;
-  const milissegundos = temMilissegundos ? digitos(textoMs, 3) : 0;
-  if (milissegundos === null) {
+  const hasMilliseconds = dotParts.length === 2;
+  const textMs = hasMilliseconds ? dotParts[1] : null;
+  const milliseconds = hasMilliseconds ? digits(textMs, 3) : 0;
+  if (milliseconds === null) {
     return null;
   }
-  const temMinutos = grupos.length >= 1;
-  const minutos = temMinutos ? digitos(grupos.pop(), 2) : 0;
-  if (minutos === null) {
+  const hasMinutes = groups.length >= 1;
+  const minutes = hasMinutes ? digits(groups.pop(), 2) : 0;
+  if (minutes === null) {
     return null;
   }
-  const temHoras = grupos.length >= 1;
-  const horas = temHoras ? digitos(grupos.pop(), 3) : 0;
-  if (horas === null) {
+  const hasHours = groups.length >= 1;
+  const hours = hasHours ? digits(groups.pop(), 3) : 0;
+  if (hours === null) {
     return null;
   }
-  const fator = temMilissegundos ? Math.pow(10, 3 - textoMs.length) : 1;
-  return ((horas * 60 + minutos) * 60 + segundos) * SEGUNDO_MS + milissegundos * fator;
+  const scale = hasMilliseconds ? Math.pow(10, 3 - textMs.length) : 1;
+  return ((hours * 60 + minutes) * 60 + seconds) * SECOND_MS + milliseconds * scale;
 }
 
-export function totalDasVoltas(voltas) {
-  return voltas.reduce((soma, volta) => soma + volta.splitMs, 0);
+export function sumLapSplits(laps) {
+  return laps.reduce((sum, lap) => sum + lap.splitMs, 0);
 }
 
-export function recomputar(voltas) {
-  const totais = new Array(voltas.length);
-  let acumulado = 0;
-  for (let i = voltas.length - 1; i >= 0; i--) {
-    acumulado += voltas[i].splitMs;
-    totais[i] = acumulado;
+export function recompute(laps) {
+  const totals = new Array(laps.length);
+  let accumulated = 0;
+  for (let i = laps.length - 1; i >= 0; i--) {
+    accumulated += laps[i].splitMs;
+    totals[i] = accumulated;
   }
-  return voltas.map((volta, i) => ({ ...volta, totalMs: totais[i] }));
+  return laps.map((lap, i) => ({ ...lap, totalMs: totals[i] }));
 }
 
-export function adicionarVolta(voltas, totalMs, id, maximo) {
-  const splitMs = Math.max(0, Math.floor(Number(totalMs) || 0) - totalDasVoltas(voltas));
-  const proximas = [{ id, splitMs }, ...voltas];
-  if (Number.isFinite(maximo) && maximo > 0 && proximas.length > maximo) {
-    proximas.length = maximo;
+export function addLap(laps, totalMs, id, max) {
+  const splitMs = Math.max(0, Math.floor(Number(totalMs) || 0) - sumLapSplits(laps));
+  const next = [{ id, splitMs }, ...laps];
+  if (Number.isFinite(max) && max > 0 && next.length > max) {
+    next.length = max;
   }
-  return recomputar(proximas);
+  return recompute(next);
 }
 
-export function editarSplit(voltas, id, novoSplitMs) {
-  const indice = voltas.findIndex((volta) => volta.id === id);
-  if (indice < 0) {
-    return { erro: "Volta não encontrada." };
+export function editSplit(laps, id, newSplitMs) {
+  const index = laps.findIndex((lap) => lap.id === id);
+  if (index < 0) {
+    return { error: "Lap not found." };
   }
-  const valor = Math.floor(Number(novoSplitMs));
-  if (!Number.isFinite(valor) || valor < 0) {
-    return { erro: "Informe um tempo válido." };
-  }
-
-  const novas = voltas.map((volta) => ({ ...volta }));
-  novas[indice].splitMs = valor;
-  if (indice === 0) {
-    return { voltas: recomputar(novas) };
+  const value = Math.floor(Number(newSplitMs));
+  if (!Number.isFinite(value) || value < 0) {
+    return { error: "Enter a valid time." };
   }
 
-  const posteriores = [];
-  for (let i = indice - 1; i >= 0; i--) {
-    posteriores.push(i);
-  }
-  const anteriores = [];
-  for (let i = indice + 1; i < novas.length; i++) {
-    anteriores.push(i);
+  const updated = laps.map((lap) => ({ ...lap }));
+  updated[index].splitMs = value;
+  if (index === 0) {
+    return { laps: recompute(updated) };
   }
 
-  let aRemover = valor - voltas[indice].splitMs;
-  let aRepor = -aRemover;
-  for (const i of [...posteriores, ...anteriores]) {
-    if (aRemover > 0) {
-      const retirado = Math.min(novas[i].splitMs, aRemover);
-      novas[i].splitMs -= retirado;
-      aRemover -= retirado;
-    } else if (aRepor > 0) {
-      novas[i].splitMs += aRepor;
-      aRepor = 0;
+  const newer = [];
+  for (let i = index - 1; i >= 0; i--) {
+    newer.push(i);
+  }
+  const older = [];
+  for (let i = index + 1; i < updated.length; i++) {
+    older.push(i);
+  }
+
+  let toRemove = value - laps[index].splitMs;
+  let toRestore = -toRemove;
+  for (const i of [...newer, ...older]) {
+    if (toRemove > 0) {
+      const taken = Math.min(updated[i].splitMs, toRemove);
+      updated[i].splitMs -= taken;
+      toRemove -= taken;
+    } else if (toRestore > 0) {
+      updated[i].splitMs += toRestore;
+      toRestore = 0;
     }
   }
-  if (aRemover > 0) {
-    novas[indice].splitMs -= aRemover;
+  if (toRemove > 0) {
+    updated[index].splitMs -= toRemove;
   }
 
-  return { voltas: recomputar(novas) };
+  return { laps: recompute(updated) };
 }
 
-export function apagarVolta(voltas, id) {
-  return recomputar(voltas.filter((volta) => volta.id !== id));
+export function removeLap(laps, id) {
+  return recompute(laps.filter((lap) => lap.id !== id));
 }
 
-export function melhorEPior(voltas) {
-  if (voltas.length < 2) {
-    return { melhorId: null, piorId: null };
+export function bestAndWorst(laps) {
+  if (laps.length < 2) {
+    return { bestId: null, worstId: null };
   }
-  let melhor = voltas[0];
-  let pior = voltas[0];
-  for (const volta of voltas) {
-    if (volta.splitMs < melhor.splitMs) {
-      melhor = volta;
+  let best = laps[0];
+  let worst = laps[0];
+  for (const lap of laps) {
+    if (lap.splitMs < best.splitMs) {
+      best = lap;
     }
-    if (volta.splitMs > pior.splitMs) {
-      pior = volta;
+    if (lap.splitMs > worst.splitMs) {
+      worst = lap;
     }
   }
-  if (melhor.splitMs === pior.splitMs) {
-    return { melhorId: null, piorId: null };
+  if (best.splitMs === worst.splitMs) {
+    return { bestId: null, worstId: null };
   }
-  return { melhorId: melhor.id, piorId: pior.id };
+  return { bestId: best.id, worstId: worst.id };
 }

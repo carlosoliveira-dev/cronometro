@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="{{.DefaultTheme}}">
+<html lang="en" class="{{.DefaultTheme}}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)">
-  <meta name="description" content="Cronômetro com precisão de milissegundos, registro de voltas e tela sempre ligada.">
+  <meta name="description" content="Stopwatch with millisecond precision, lap records and a keep-awake screen.">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,23 +16,22 @@
   <script>
     (function () {
       try {
-        var bruto = localStorage.getItem("cronometro:v1");
-        var tema = bruto ? (JSON.parse(bruto).preferencias || {}).tema : null;
-        var escuro = document.documentElement.classList.contains("dark");
-        if (tema === "claro" || tema === "escuro") {
-          document.documentElement.classList.toggle("dark", tema === "escuro");
+        var raw = localStorage.getItem("stopwatch:v1");
+        var theme = raw ? (JSON.parse(raw).preferences || {}).theme : null;
+        if (theme === "light" || theme === "dark") {
+          document.documentElement.classList.toggle("dark", theme === "dark");
         } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
           document.documentElement.classList.add("dark");
         }
-        document.documentElement.dataset.temaAplicado = escuro ? "escuro" : "claro";
-      } catch (erro) {
-        document.documentElement.dataset.temaAplicado = "indisponivel";
+        document.documentElement.dataset.themeApplied = document.documentElement.classList.contains("dark") ? "dark" : "light";
+      } catch (error) {
+        document.documentElement.dataset.themeApplied = "unavailable";
       }
     })();
   </script>
 </head>
 <body
-  class="altura-app flex flex-col bg-slate-100 text-slate-900 antialiased selection:bg-accent-500/30 dark:bg-slate-950 dark:text-slate-100"
+  class="app-height flex flex-col bg-slate-100 text-slate-900 antialiased selection:bg-accent-500/30 dark:bg-slate-950 dark:text-slate-100"
   data-max-laps="{{.MaxLaps}}"
   data-default-theme="{{.DefaultTheme}}"
   data-version="{{.Version}}"
@@ -40,7 +39,7 @@
 >
   <noscript>
     <p class="p-4 text-center text-sm text-rose-600 dark:text-rose-400">
-      Este cronômetro precisa de JavaScript para contar o tempo.
+      This stopwatch needs JavaScript to keep time.
     </p>
   </noscript>
 
@@ -49,35 +48,35 @@
       {{.AppName}}
     </h1>
 
-    <div class="flex items-center gap-1" role="group" aria-label="Preferências">
+    <div class="flex items-center gap-1" role="group" aria-label="Preferences">
       <button
         type="button"
-        id="btn-tema"
+        id="btn-theme"
         class="grid size-11 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-200/70 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:outline-none dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-        aria-label="Alternar tema claro e escuro"
+        aria-label="Toggle light and dark theme"
       >
-        <svg class="so-sol size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <svg class="icon-sun size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
           <circle cx="12" cy="12" r="4"></circle>
           <path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
         </svg>
-        <svg class="so-lua size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg class="icon-moon size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
         </svg>
       </button>
 
       <button
         type="button"
-        id="btn-som"
-        data-estado="true"
+        id="btn-sound"
+        data-state="true"
         aria-pressed="true"
         class="grid size-11 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-200/70 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:outline-none dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-        aria-label="Ativar ou desativar o som das voltas"
+        aria-label="Toggle the lap sound"
       >
-        <svg class="so-on size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg class="icon-on size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M11 5 6 9H3v6h3l5 4V5Z"></path>
           <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
         </svg>
-        <svg class="so-off size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg class="icon-off size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M11 5 6 9H3v6h3l5 4V5Z"></path>
           <path d="m16 9 5 6m0-6-5 6"></path>
         </svg>
@@ -85,17 +84,17 @@
 
       <button
         type="button"
-        id="btn-vibrar"
-        data-estado="true"
+        id="btn-vibrate"
+        data-state="true"
         aria-pressed="true"
         class="grid size-11 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-200/70 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:outline-none dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-        aria-label="Ativar ou desativar a vibração nas voltas"
+        aria-label="Toggle lap vibration"
       >
-        <svg class="so-on size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg class="icon-on size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="8" y="3" width="8" height="14" rx="2"></rect>
           <path d="M5 9v3M19 9v3M11 20h2"></path>
         </svg>
-        <svg class="so-off size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg class="icon-off size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="8" y="3" width="8" height="14" rx="2"></rect>
           <path d="M4 4l16 16"></path>
         </svg>
@@ -104,16 +103,16 @@
       <button
         type="button"
         id="btn-wake"
-        data-estado="false"
+        data-state="false"
         aria-pressed="false"
         class="grid size-11 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-200/70 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:outline-none dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-        aria-label="Manter a tela sempre ligada"
+        aria-label="Keep the screen awake"
       >
-        <svg class="so-on size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg class="icon-on size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="6" y="2.5" width="12" height="19" rx="2.5"></rect>
           <path d="M11 18.5h2"></path>
         </svg>
-        <svg class="so-off size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg class="icon-off size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="6" y="2.5" width="12" height="19" rx="2.5"></rect>
           <path d="M4 4l16 16"></path>
         </svg>
@@ -122,56 +121,56 @@
   </header>
 
   <main class="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-1 sm:px-6">
-    <section class="flex flex-col items-center gap-2 pt-2 sm:pt-4" aria-label="Tempo decorrido">
+    <section class="flex flex-col items-center gap-2 pt-2 sm:pt-4" aria-label="Elapsed time">
       <div
-        id="cronometro"
+        id="stopwatch"
         role="timer"
         aria-live="off"
-        class="tempo-display flex items-baseline justify-center gap-1 select-none sm:gap-1.5"
+        class="time-display flex items-baseline justify-center gap-1 select-none sm:gap-1.5"
       >
-        <span id="tempo-h" class="hidden min-w-[1ch] text-right text-horas font-light text-slate-400 tabular-nums dark:text-slate-500">0</span>
-        <span id="tempo-h-sep" class="separador hidden text-[calc(var(--text-display)*0.6)]">:</span>
-        <span id="tempo-min" class="min-w-[2ch] text-right text-minutos font-light text-slate-400 tabular-nums dark:text-slate-500">00</span>
-        <span class="separador text-[calc(var(--text-display)*0.6)]">:</span>
-        <span id="tempo-sec" class="acento-segundos min-w-[2ch] text-center text-display font-bold tabular-nums">00</span>
-        <span class="separador text-[calc(var(--text-display)*0.42)]">.</span>
-        <span id="tempo-ms" class="min-w-[3ch] text-left text-milis font-medium text-slate-400 tabular-nums dark:text-slate-500">000</span>
+        <span id="time-h" class="hidden min-w-[1ch] text-right text-hours font-light text-slate-400 tabular-nums dark:text-slate-500">0</span>
+        <span id="time-h-sep" class="separator hidden text-[calc(var(--text-display)*0.6)]">:</span>
+        <span id="time-min" class="min-w-[2ch] text-right text-minutes font-light text-slate-400 tabular-nums dark:text-slate-500">00</span>
+        <span class="separator text-[calc(var(--text-display)*0.6)]">:</span>
+        <span id="time-sec" class="seconds-accent min-w-[2ch] text-center text-display font-bold tabular-nums">00</span>
+        <span class="separator text-[calc(var(--text-display)*0.42)]">.</span>
+        <span id="time-ms" class="min-w-[3ch] text-left text-ms font-medium text-slate-400 tabular-nums dark:text-slate-500">000</span>
       </div>
-      <p id="situacao" class="text-xs font-medium tracking-wide text-slate-400 uppercase dark:text-slate-500">
-        Pronto para iniciar
+      <p id="status" class="text-xs font-medium tracking-wide text-slate-400 uppercase dark:text-slate-500">
+        Ready to start
       </p>
     </section>
 
     <section
-      id="painel-resumo"
+      id="summary-panel"
       class="grid grid-cols-3 gap-2 text-center [@media(max-height:520px)]:hidden"
-      aria-label="Resumo da sessão"
+      aria-label="Session summary"
     >
       <div class="rounded-xl bg-white/70 px-2 py-2 ring-1 ring-slate-200/80 dark:bg-slate-900/60 dark:ring-slate-800">
-        <p class="text-[0.65rem] font-medium tracking-wide text-slate-400 uppercase dark:text-slate-500">Voltas</p>
-        <p id="resumo-voltas" class="mt-0.5 text-lg font-semibold tabular-nums">0</p>
+        <p class="text-[0.65rem] font-medium tracking-wide text-slate-400 uppercase dark:text-slate-500">Laps</p>
+        <p id="summary-laps" class="mt-0.5 text-lg font-semibold tabular-nums">0</p>
       </div>
       <div class="rounded-xl bg-white/70 px-2 py-2 ring-1 ring-slate-200/80 dark:bg-slate-900/60 dark:ring-slate-800">
-        <p class="text-[0.65rem] font-medium tracking-wide text-emerald-600 uppercase dark:text-emerald-400">Melhor</p>
-        <p id="resumo-melhor" class="tempo-display mt-0.5 text-lg font-semibold">—</p>
+        <p class="text-[0.65rem] font-medium tracking-wide text-emerald-600 uppercase dark:text-emerald-400">Best</p>
+        <p id="summary-best" class="time-display mt-0.5 text-lg font-semibold">—</p>
       </div>
       <div class="rounded-xl bg-white/70 px-2 py-2 ring-1 ring-slate-200/80 dark:bg-slate-900/60 dark:ring-slate-800">
-        <p class="text-[0.65rem] font-medium tracking-wide text-rose-600 uppercase dark:text-rose-400">Pior</p>
-        <p id="resumo-pior" class="tempo-display mt-0.5 text-lg font-semibold">—</p>
+        <p class="text-[0.65rem] font-medium tracking-wide text-rose-600 uppercase dark:text-rose-400">Worst</p>
+        <p id="summary-worst" class="time-display mt-0.5 text-lg font-semibold">—</p>
       </div>
     </section>
 
-    <section class="flex min-h-0 flex-1 flex-col" aria-label="Voltas registradas">
+    <section class="flex min-h-0 flex-1 flex-col" aria-label="Recorded laps">
       <div class="flex items-baseline justify-between px-1 pb-1.5">
-        <h2 class="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Voltas</h2>
-        <p id="aviso-rolagem" class="hidden text-[0.65rem] text-slate-400 dark:text-slate-500"></p>
+        <h2 class="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Laps</h2>
+        <p id="scroll-notice" class="hidden text-[0.65rem] text-slate-400 dark:text-slate-500"></p>
       </div>
       <ol
-        id="lista-voltas"
-        class="lista-voltas altura-lista min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-2xl bg-white/70 ring-1 ring-slate-200/80 dark:bg-slate-900/60 dark:ring-slate-800"
+        id="lap-list"
+        class="lap-list lap-list-height min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-2xl bg-white/70 ring-1 ring-slate-200/80 dark:bg-slate-900/60 dark:ring-slate-800"
       ></ol>
-      <p id="lista-vazia" class="rounded-2xl bg-white/70 px-4 py-8 text-center text-sm text-slate-400 ring-1 ring-slate-200/80 dark:bg-slate-900/60 dark:text-slate-500 dark:ring-slate-800">
-        Nenhuma volta ainda. Toque em <strong>Iniciar</strong> e depois em <strong>Volta</strong>.
+      <p id="empty-state" class="rounded-2xl bg-white/70 px-4 py-8 text-center text-sm text-slate-400 ring-1 ring-slate-200/80 dark:bg-slate-900/60 dark:text-slate-500 dark:ring-slate-800">
+        No laps yet. Start the timer, then tap <strong>Lap</strong>.
       </p>
     </section>
   </main>
@@ -183,107 +182,97 @@
     <div class="mx-auto flex max-w-md items-center gap-2 sm:gap-3">
       <button
         type="button"
-        id="btn-zerar"
+        id="btn-reset"
         class="flex-1 rounded-2xl bg-slate-200 py-4 text-sm font-semibold text-slate-700 transition active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40 dark:bg-slate-800 dark:text-slate-200 dark:ring-offset-slate-950"
-      >
-        Zerar
-      </button>
+      >Reset</button>
 
       <button
         type="button"
-        id="btn-iniciar"
+        id="btn-start"
         class="flex-[1.4] rounded-2xl bg-accent-600 py-5 text-base font-bold text-white shadow-lg shadow-accent-600/25 transition active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:outline-none dark:bg-accent-400 dark:text-slate-950 dark:shadow-accent-400/20 dark:ring-offset-slate-950"
-      >
-        Iniciar
-      </button>
+      >Start</button>
 
       <button
         type="button"
-        id="btn-volta"
+        id="btn-lap"
         class="flex-1 rounded-2xl bg-slate-200 py-4 text-sm font-semibold text-slate-700 transition active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40 dark:bg-slate-800 dark:text-slate-200 dark:ring-offset-slate-950"
-      >
-        Volta
-      </button>
+      >Lap</button>
     </div>
 
     <p class="mt-2 hidden text-center text-[0.7rem] text-slate-400 sm:block dark:text-slate-500">
-      <kbd class="rounded bg-slate-200 px-1 py-0.5 font-mono dark:bg-slate-800">Espaço</kbd> iniciar ou parar
-      · <kbd class="rounded bg-slate-200 px-1 py-0.5 font-mono dark:bg-slate-800">L</kbd> volta
-      · <kbd class="rounded bg-slate-200 px-1 py-0.5 font-mono dark:bg-slate-800">R</kbd> zerar
+      <kbd class="rounded bg-slate-200 px-1 py-0.5 font-mono dark:bg-slate-800">Space</kbd> start or stop
+      · <kbd class="rounded bg-slate-200 px-1 py-0.5 font-mono dark:bg-slate-800">L</kbd> lap
+      · <kbd class="rounded bg-slate-200 px-1 py-0.5 font-mono dark:bg-slate-800">R</kbd> reset
     </p>
   </footer>
 
   <dialog
-    id="dlg-editar"
+    id="dlg-edit"
     class="w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-2xl backdrop:bg-slate-950/50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
-    aria-labelledby="dlg-titulo"
+    aria-labelledby="dlg-title"
   >
-    <form id="form-editar" method="dialog" class="flex flex-col gap-4">
+    <form id="form-edit" method="dialog" class="flex flex-col gap-4">
       <div>
-        <h2 id="dlg-titulo" class="text-lg font-semibold">Editar volta <span id="dlg-numero" class="acento-segundos"></span></h2>
+        <h2 id="dlg-title" class="text-lg font-semibold">Edit lap <span id="dlg-number" class="seconds-accent"></span></h2>
         <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          Informe o tempo da volta no formato <code class="font-mono">mm:ss.mmm</code>. Os totais seguintes são recalculados.
+          Enter the lap time as <code class="font-mono">mm:ss.mmm</code>. Later totals are recalculated.
         </p>
       </div>
 
       <input
         type="text"
-        id="campo-tempo"
+        id="time-input"
         inputmode="numeric"
         autocomplete="off"
         spellcheck="false"
-        class="tempo-display w-full rounded-xl bg-slate-100 px-4 py-3 text-center font-mono text-2xl ring-1 ring-slate-300 focus:ring-2 focus:ring-accent-600 focus:outline-none dark:bg-slate-800 dark:ring-slate-700"
+        class="time-display w-full rounded-xl bg-slate-100 px-4 py-3 text-center font-mono text-2xl ring-1 ring-slate-300 focus:ring-2 focus:ring-accent-600 focus:outline-none dark:bg-slate-800 dark:ring-slate-700"
       >
-      <p id="erro-campo" class="hidden text-xs font-medium text-rose-600 dark:text-rose-400"></p>
+      <p id="field-error" class="hidden text-xs font-medium text-rose-600 dark:text-rose-400"></p>
 
       <div class="flex gap-2">
         <button
           type="button"
-          id="btn-cancelar-edicao"
+          id="btn-cancel-edit"
           class="flex-1 rounded-xl bg-slate-200 py-3 text-sm font-semibold transition active:scale-[0.97] dark:bg-slate-800"
-        >
-          Cancelar
-        </button>
+        >Cancel</button>
         <button
           type="submit"
-          id="btn-salvar-edicao"
+          id="btn-save-edit"
           class="flex-1 rounded-xl bg-accent-600 py-3 text-sm font-semibold text-white transition active:scale-[0.97] dark:bg-accent-400 dark:text-slate-950"
-        >
-          Salvar
-        </button>
+        >Save</button>
       </div>
     </form>
   </dialog>
 
   <p
-    id="aviso"
+    id="toast"
     role="status"
     aria-live="polite"
     class="pointer-events-none fixed inset-x-0 bottom-28 z-10 mx-auto w-max max-w-[90vw] rounded-full bg-slate-900/90 px-4 py-2 text-sm font-medium text-white opacity-0 transition-opacity duration-200 dark:bg-slate-100 dark:text-slate-900"
   ></p>
 
-  <template id="modelo-volta">
+  <template id="lap-template">
     <li class="group flex items-center gap-2 border-b border-slate-200/70 px-3 py-2 last:border-b-0 sm:gap-3 sm:px-4 sm:py-3.5 dark:border-slate-800/70">
       <span class="w-9 shrink-0 font-mono text-xs font-semibold text-slate-400 tabular-nums sm:w-11 sm:text-sm dark:text-slate-500"></span>
       <span class="flex-1">
-        <span class="tempo-display flex items-baseline gap-0.5 text-lg sm:text-xl">
+        <span class="time-display flex items-baseline gap-0.5 text-lg sm:text-xl">
           <span class="split-min w-[2ch] text-right text-xs font-light text-slate-400 tabular-nums sm:text-sm dark:text-slate-500"></span>
-          <span class="separador text-xs sm:text-sm">:</span>
-          <span class="split-sec acento-segundos w-[2ch] text-center text-base font-bold tabular-nums sm:text-lg"></span>
-          <span class="separador text-[0.6rem] sm:text-xs">.</span>
+          <span class="separator text-xs sm:text-sm">:</span>
+          <span class="split-sec seconds-accent w-[2ch] text-center text-base font-bold tabular-nums sm:text-lg"></span>
+          <span class="separator text-[0.6rem] sm:text-xs">.</span>
           <span class="split-ms w-[3ch] text-xs font-medium text-slate-400 tabular-nums sm:text-sm dark:text-slate-500"></span>
         </span>
         <span class="mt-0.5 flex items-center gap-1.5 text-[0.65rem] text-slate-400 sm:text-[0.7rem] dark:text-slate-500">
-          <span class="total tempo-display"></span>
-          <span class="selo-melhor hidden rounded-full bg-emerald-100 px-1.5 py-px font-semibold text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300">melhor</span>
-          <span class="selo-pior hidden rounded-full bg-rose-100 px-1.5 py-px font-semibold text-rose-700 dark:bg-rose-400/15 dark:text-rose-300">pior</span>
+          <span class="total time-display"></span>
+          <span class="badge-best hidden rounded-full bg-emerald-100 px-1.5 py-px font-semibold text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300">best</span>
+          <span class="badge-worst hidden rounded-full bg-rose-100 px-1.5 py-px font-semibold text-rose-700 dark:bg-rose-400/15 dark:text-rose-300">worst</span>
         </span>
       </span>
       <span class="flex shrink-0 items-center gap-1">
         <button
           type="button"
-          class="btn-editar grid size-9 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-200 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:outline-none sm:size-10 dark:hover:bg-slate-700 dark:hover:text-slate-100"
-          aria-label="Editar volta"
+          class="btn-edit grid size-9 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-200 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:outline-none sm:size-10 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+          aria-label="Edit lap"
         >
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M4 20h4L18 10a2.1 2.1 0 0 0-3-3L5 17v3Z"></path>
@@ -292,8 +281,8 @@
         </button>
         <button
           type="button"
-          class="btn-apagar grid size-9 place-items-center rounded-lg text-slate-400 transition hover:bg-rose-100 hover:text-rose-600 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none sm:size-10 dark:hover:bg-rose-500/15 dark:hover:text-rose-300"
-          aria-label="Apagar volta"
+          class="btn-delete grid size-9 place-items-center rounded-lg text-slate-400 transition hover:bg-rose-100 hover:text-rose-600 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none sm:size-10 dark:hover:bg-rose-500/15 dark:hover:text-rose-300"
+          aria-label="Delete lap"
         >
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path>

@@ -1,3 +1,3 @@
-module cronometro
+module stopwatch
 
 go 1.26
