@@ -1,0 +1,178 @@
+@import "tailwindcss";
+
+@source "../../templates";
+@source "../../static/js";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
+
+  --text-horas: clamp(1.25rem, min(7vw, 9vh), 2.5rem);
+  --text-horas--line-height: 1;
+  --text-minutos: clamp(1.1rem, min(6.5vw, 8.5vh), 2.25rem);
+  --text-minutos--line-height: 1;
+  --text-display: clamp(2.75rem, min(15vw, 19vh), 5rem);
+  --text-display--line-height: 1;
+  --text-milis: clamp(0.8rem, min(4.6vw, 6vh), 1.5rem);
+  --text-milis--line-height: 1;
+
+  --color-accent-50: oklch(97% 0.02 162);
+  --color-accent-100: oklch(93% 0.05 162);
+  --color-accent-300: oklch(83% 0.13 162);
+  --color-accent-400: oklch(76% 0.16 162);
+  --color-accent-500: oklch(69% 0.17 162);
+  --color-accent-600: oklch(57% 0.15 265);
+  --color-accent-700: oklch(48% 0.14 265);
+  --color-accent-900: oklch(26% 0.06 265);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --altura-app: 100vh;
+    --altura-lista: 42vh;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
+  @supports (height: 100svh) {
+    :root {
+      --altura-app: 100svh;
+      --altura-lista: 42svh;
+    }
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overscroll-behavior-y: none;
+  }
+
+  button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@utility tempo-display {
+  contain: layout style;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+@utility altura-app {
+  min-height: var(--altura-app);
+}
+
+@utility altura-lista {
+  max-height: var(--altura-lista);
+}
+
+@utility acento-segundos {
+  color: var(--color-accent-600);
+  text-shadow: 0 0 28px color-mix(in oklab, var(--color-accent-600) 32%, transparent);
+}
+
+.dark .acento-segundos {
+  color: var(--color-accent-400);
+  text-shadow: 0 0 28px color-mix(in oklab, var(--color-accent-400) 34%, transparent);
+}
+
+@utility separador {
+  color: color-mix(in oklab, currentColor 55%, transparent);
+  opacity: 0.45;
+}
+
+@keyframes piscar-separador {
+  0%,
+  49% {
+    opacity: 0.5;
+  }
+  50%,
+  100% {
+    opacity: 0.12;
+  }
+}
+
+.rodando .separador {
+  animation: piscar-separador 1s steps(1, end) infinite;
+}
+
+@keyframes pulsar-segundos {
+  0% {
+    transform: scale(1);
+  }
+  38% {
+    transform: scale(1.045);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pulso-segundos {
+  animation: pulsar-segundos 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.surgir {
+  animation: surgir 200ms ease-out both;
+}
+
+.lista-voltas {
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+
+[data-estado="false"] .so-on {
+  display: none;
+}
+
+[data-estado="true"] .so-off {
+  display: none;
+}
+
+.so-lua {
+  display: none;
+}
+
+.dark .so-sol {
+  display: none;
+}
+
+.dark .so-lua {
+  display: block;
+}
+
+.lista-voltas::-webkit-scrollbar {
+  width: 6px;
+}
+
+.lista-voltas::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, currentColor 25%, transparent);
+  border-radius: 9999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rodando .separador,
+  .pulso-segundos,
+  .surgir {
+    animation: none;
+  }
+}

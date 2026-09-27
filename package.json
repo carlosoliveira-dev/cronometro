@@ -1,0 +1,15 @@
+{
+  "name": "cronometro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cronometro mobile-first com precisao de milissegundos, servido por Go com html/template e Tailwind CSS",
+  "type": "module",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/css/input.css -o ./static/dist/app.css --minify",
+    "watch:css": "tailwindcss -i ./static/css/input.css -o ./static/dist/app.css --watch",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3"
+  }
+}
